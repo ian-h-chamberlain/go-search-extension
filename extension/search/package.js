@@ -8,7 +8,7 @@ function PackageSearch(packagesIndex) {
 PackageSearch.prototype.search = function(keyword) {
     let result = [];
     keyword = keyword.replace(/[-_!]/g, "");
-    for (let rawName of this.packageNames) {
+    for (let [indexOrder, rawName] of this.packageNames.entries()) {
         let [domain, repository, ...name] = rawName.split("/");
         // Join the rest to name.
         name = name.join("/");
@@ -32,6 +32,7 @@ PackageSearch.prototype.search = function(keyword) {
                 domainMatchIndex,
                 repositoryMatchIndex,
                 nameMatchIndex,
+                indexOrder,
                 description,
                 version,
                 repository,
@@ -44,6 +45,11 @@ PackageSearch.prototype.search = function(keyword) {
         if (a.domainMatchIndex === b.domainMatchIndex) {
             if (a.repositoryMatchIndex === b.repositoryMatchIndex) {
                 if (a.nameMatchIndex === b.nameMatchIndex && a.name && b.name) {
+                    if (a.name.length === b.name.length) {
+                        // JS sort is not guaranteed to be stable, so sort by its
+                        // original index in the list if all else is equal.
+                        return a.indexOrder - b.indexOrder;
+                    }
                     return a.name.length - b.name.length;
                 }
                 return a.nameMatchIndex - b.nameMatchIndex;
